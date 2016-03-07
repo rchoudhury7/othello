@@ -15,6 +15,7 @@ Player::Player(Side side) {
      * 30 seconds.
      */
     Board *newBoard = new Board();
+    Side color = side;
 }
 
 /*
@@ -45,6 +46,29 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     if (Board::checkMove(*opponentsMove, ?) == false) {
         stderr("invalid move");
     }
-     
-    return NULL;
+    int score = 0;
+    int currScore = 0;
+    Move *bestMove, *currMove;
+    for (int i = 0; i < legMoves1.size(); ++i) {
+      Board *boardCopy = Board::*newboard.copy();
+      *currMove = legMoves1[i];
+      *boardCopy.doMove(legMoves1[i] ,color)
+      // Now we need to find a list of legal after move on boardCopy
+      for (int j = 0; j < legMoves[2].size(); ++j) {
+        Board *boardCopy2  = Board::*boardCopy.copy();
+        if (side == BLACK) {
+          *boardCopy2.doMove(legMoves2[j], WHITE);
+          currScore = boardCopy2.countBlack() - boardCopy2.countWhite();
+        }
+        else {
+          *boardCopy2.doMove(legMoves2[j], BLACK);
+          currScore = boardCopy2.countwhite() - boardCopy2.countBlack();
+        }
+	if (currScore > score) {
+	  score = currScore;
+	  *bestMove = *currMove;
+	}
+      }
+    }
+    return *bestMove;
 }
