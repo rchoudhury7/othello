@@ -1,6 +1,5 @@
 #include "player.h"
 
-
 /*
  * Constructor for the player; initialize everything here. The side your AI is
  * on (BLACK or WHITE) is passed in as "side". The constructor must finish 
@@ -36,29 +35,94 @@ Player::~Player() {
  * The move returned must be legal; if there are no valid moves for your side,
  * return NULL.
  */
+
+void Player::setBoard(char data[])
+{
+	playBoard->setBoard(data);
+}
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
     
-    //should probably implement something to check if the move is valid.
-	playBoard->doMove(opponentsMove,oppColor);
+    playBoard->doMove(opponentsMove,oppColor);
 
-    std::vector<int> scores;
-    std::vector<Move*> moves = playBoard->getMoves(color);
+    int depth = 3;
+	std::vector<Move*> moves = playBoard->getMoves(color);
+	std::vector<int> scores;
+	int max_score = -900000;
+	int scoreInd = 0;
 
-    for(unsigned int i = 0; i < moves.size(); i++)
+	for(unsigned int i = 0; i < moves.size(); i++)
+	{
+		//stderr << "yoyoyoyoy" << endl;
+		Board *board2 = playBoard->copy();
+		board2->doMove(moves[i],color);
+		int score = minimax(depth, oppColor, board2);
+		if(score > max_score)
+		{
+			scoreInd = i;
+			max_score = score;
+		}
+	}
+	if(moves.empty())
+		return NULL;
+
+	playBoard->doMove(moves[scoreInd], color);
+	return moves[scoreInd];
+
+}
+
+int Player::minimax(int depth, Side side, Board *board)
+{
+	std::vector<Move*> moves = board->getMoves(side);
+	Side oSide = WHITE;
+	if(side == WHITE)
+		oSide = BLACK;
+
+	if(depth == 1 || moves.empty())
+		return getBestGreedyMove(board, side);
+
+	int max_score = -900000;
+	int min_score = 900000;
+	for(unsigned int i = 0; i < moves.size(); i++)
+	{
+		Board *board2 = board->copy();
+		board2->doMove(moves[i], side);
+		int score = minimax(depth - 1, oSide, board2);
+		if(score > max_score)
+			max_score = score;
+		if(score < min_score)
+			min_score = score;
+	}
+	if(side == color)
+		return max_score;
+	return min_score;
+}
+
+// this will get the best move for a side given the board.
+int Player::getBestGreedyMove(Board *board, Side side)
+{
+	std::vector<int> scores;
+    std::vector<Move*> moves = board->getMoves(side);
+
+    for(unsigned int i = 0; i < moves.size(); i++) // simple heuristic
     {
-    	Board *copy = playBoard->copy();
+    	Board *copy = board->copy();
     	copy->doMove(moves[i],color);
-    	scores.push_back(getScore(copy,moves[i]));
+    	scores.push_back(getScore(copy,moves[i],side));
     	delete copy;
     }
 
-    int scoreInd = 0;
+    int max_score = -900000;
+    int min_score = 900000;
     for(unsigned int i = 0; i < scores.size(); i++)
-    	if(scores[i] > scores[scoreInd])
-    		scoreInd = i;
- 
-    playBoard->doMove(moves[scoreInd],color);
-    return moves[scoreInd];
+    {
+    	if(scores[i] > max_score)
+    		max_score = scores[i];
+    	if(scores[i] < min_score)
+    		min_score = scores[i];
+    }
+    if(side == color)
+    	return max_score;
+    return min_score;
 }
 
 /**
@@ -71,14 +135,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
  *@return score the heuristic score of the move
  */
  
-int Player::getScore(Board *board,Move *move)
+int Player::getScore(Board *board,Move *move, Side side)
 {
-	int score = board->count(color) - board->count(oppColor);
+	int score = board->countBlack() - board->countWhite();
+
+	if(side == WHITE)
+		score = board->countWhite() - board->countBlack();
 	
 	if(corner(move))
-		score *= 3;
+		score *= 5;
 	if(cornerAccess(move))
-		score *= -3;
+		score *= -5;
 
 	return score;
 }
