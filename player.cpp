@@ -1,5 +1,6 @@
 #include "player.h"
 
+
 /*
  * Constructor for the player; initialize everything here. The side your AI is
  * on (BLACK or WHITE) is passed in as "side". The constructor must finish 
@@ -8,22 +9,19 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
-
-    /* 
-     * TODO: Do any initialization you need to do here (setting up the board,
-     * precalculating things, etc.) However, remember that you will only have
-     * 30 seconds.
-     */
-    Board *newBoard = new Board();
-    Side color = side;
+    color = side;
+    if(color == WHITE)
+    	oppColor = BLACK;
+    else
+    	oppColor = WHITE;
+    playBoard = new Board();
 }
 
 /*
  * Destructor for the player.
  */
 Player::~Player() {
-	//comment for commit
-    delete newBoard;
+	delete playBoard;
 }
 
 /*
@@ -39,36 +37,87 @@ Player::~Player() {
  * return NULL.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-    /* 
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */
-    if (Board::checkMove(*opponentsMove, ?) == false) {
-        stderr("invalid move");
+    
+    //should probably implement something to check if the move is valid.
+	playBoard->doMove(opponentsMove,oppColor);
+
+    std::vector<int> scores;
+    std::vector<Move*> moves = playBoard->getMoves(color);
+
+    for(unsigned int i = 0; i < moves.size(); i++)
+    {
+    	Board *copy = playBoard->copy();
+    	copy->doMove(moves[i],color);
+    	scores.push_back(getScore(copy,moves[i]));
+    	delete copy;
     }
-    int score = 0;
-    int currScore = 0;
-    Move *bestMove, *currMove;
-    for (int i = 0; i < legMoves1.size(); ++i) {
-      Board *boardCopy = Board::*newboard.copy();
-      *currMove = legMoves1[i];
-      *boardCopy.doMove(legMoves1[i] ,color)
-      // Now we need to find a list of legal after move on boardCopy
-      for (int j = 0; j < legMoves[2].size(); ++j) {
-        Board *boardCopy2  = Board::*boardCopy.copy();
-        if (side == BLACK) {
-          *boardCopy2.doMove(legMoves2[j], WHITE);
-          currScore = boardCopy2.countBlack() - boardCopy2.countWhite();
-        }
-        else {
-          *boardCopy2.doMove(legMoves2[j], BLACK);
-          currScore = boardCopy2.countwhite() - boardCopy2.countBlack();
-        }
-	if (currScore > score) {
-	  score = currScore;
-	  *bestMove = *currMove;
+
+    int scoreInd = 0;
+    for(unsigned int i = 0; i < scores.size(); i++)
+    	if(scores[i] > scores[scoreInd])
+    		scoreInd = i;
+ 
+    playBoard->doMove(moves[scoreInd],color);
+    return moves[scoreInd];
+}
+
+/**
+ * @brief Heuristic function for scoring a move.
+ *
+ * @param side What side the player is on.
+ * @param *board Pointer to a board with the move acted upon it.
+ * @param *move The move that will be scored.
+ *
+ *@return score the heuristic score of the move
+ */
+ 
+int Player::getScore(Board *board,Move *move)
+{
+	int score = board->count(color) - board->count(oppColor);
+	
+	if(corner(move))
+		score *= 3;
+	if(cornerAccess(move))
+		score *= -3;
+
+	return score;
+}
+
+bool Player::cornerAccess(Move *move)
+{
+	if(move->getX() == 0)
+	{
+		if(move->getY() == 1 || move->getY() == 6)
+			return true;
 	}
-      }
-    }
-    return *bestMove;
+	else if(move->getX() == 1)
+	{
+		if(move->getY() == 0 || move->getY() == 1 || move->getY() == 6 || move->getY() == 7)
+			return true;
+	}
+	else if(move->getX() == 6)
+	{
+		if(move->getY() == 0 || move->getY() == 1 || move->getY() == 6 || move->getY() == 7)
+			return true;
+	}
+	else if(move->getX() == 7)
+	{
+		if(move->getY() == 1 || move->getY() == 6)
+			return true;
+	}
+	return false;
+}
+
+bool Player::corner(Move *move)
+{
+	if(move->getX() == 0 && move->getY() == 0)
+		return true;
+	else if(move->getX() == 0 && move->getY() == 7)
+		return true;
+	else if(move->getX() == 7 && move->getY() == 0)
+		return true;
+	else if(move->getX() == 7 && move->getY() == 7)
+		return true;
+
+	return false;
 }
