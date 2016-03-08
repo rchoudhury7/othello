@@ -22,7 +22,6 @@ public:
     void setBoard(char data[]);
     bool cornerAccess(Move *move);
     int minimax(int depth, Side side, Board *board);
-    int getBestGreedyMove(Board *board, Side side);
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;

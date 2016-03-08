@@ -52,7 +52,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 	for(unsigned int i = 0; i < moves.size(); i++)
 	{
-		//stderr << "yoyoyoyoy" << endl;
 		Board *board2 = playBoard->copy();
 		board2->doMove(moves[i],color);
 		int score = minimax(depth, oppColor, board2);
@@ -73,57 +72,38 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 int Player::minimax(int depth, Side side, Board *board)
 {
 	std::vector<Move*> moves = board->getMoves(side);
-	Side oSide = WHITE;
-	if(side == WHITE)
-		oSide = BLACK;
 
-	if(depth == 1 || moves.empty())
-		return getBestGreedyMove(board, side);
+	if(depth == 0 || moves.empty())
+		return board->count(color) - board->count(oppColor);
 
 	int max_score = -900000;
 	int min_score = 900000;
-	for(unsigned int i = 0; i < moves.size(); i++)
-	{
-		Board *board2 = board->copy();
-		board2->doMove(moves[i], side);
-		int score = minimax(depth - 1, oSide, board2);
-		if(score > max_score)
-			max_score = score;
-		if(score < min_score)
-			min_score = score;
-	}
 	if(side == color)
+	{
+		for(unsigned int i = 0; i < moves.size(); i++)
+		{
+			Board *board2 = board->copy();
+			board2->doMove(moves[i], side);
+			int score = minimax(depth - 1, oppColor, board2);
+			if(score > max_score)
+				max_score = score;
+		}
 		return max_score;
-	return min_score;
+	}
+	else 
+	{
+		for(unsigned int i = 0; i < moves.size(); i++)
+		{
+			Board *board2 = board->copy();
+			board2->doMove(moves[i], side);
+			int score = minimax(depth - 1, color, board2);
+			if(score < min_score)
+				min_score = score;
+		}
+		return min_score;
+	}
 }
 
-// this will get the best move for a side given the board.
-int Player::getBestGreedyMove(Board *board, Side side)
-{
-	std::vector<int> scores;
-    std::vector<Move*> moves = board->getMoves(side);
-
-    for(unsigned int i = 0; i < moves.size(); i++) // simple heuristic
-    {
-    	Board *copy = board->copy();
-    	copy->doMove(moves[i],color);
-    	scores.push_back(getScore(copy,moves[i],side));
-    	delete copy;
-    }
-
-    int max_score = -900000;
-    int min_score = 900000;
-    for(unsigned int i = 0; i < scores.size(); i++)
-    {
-    	if(scores[i] > max_score)
-    		max_score = scores[i];
-    	if(scores[i] < min_score)
-    		min_score = scores[i];
-    }
-    if(side == color)
-    	return max_score;
-    return min_score;
-}
 
 /**
  * @brief Heuristic function for scoring a move.
