@@ -164,6 +164,19 @@ int Board::count(Side side) {
     return (side == BLACK) ? countBlack() : countWhite();
 }
 
+int Board::corners(Side side) {
+  int corns = 0;
+  if (get(side, 0, 0))
+    corns += 1;
+  if (get(side, 0, 7))
+    corns += 1;
+  if (get(side, 7, 0))
+    corns += 1;
+  if (get (side, 7, 7))
+    corns += 1;
+  return corns;
+}
+
 /*
  * Current count of black stones.
  */

@@ -17,10 +17,9 @@ public:
     ~Player();
     
     Move *doMove(Move *opponentsMove, int msLeft);
-    int getScore(Board *board,Move *move, Side side);
-    bool corner(Move *move);
+    int getScore(Board *board, Side side);
+    bool corner(Side side);
     void setBoard(char data[]);
-    bool cornerAccess(Move *move);
     int minimax(int depth, Side side, Board *board);
 
     // Flag to tell if the player is running within the test_minimax context

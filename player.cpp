@@ -44,7 +44,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     
     playBoard->doMove(opponentsMove,oppColor);
 
-    int depth = 3;
+        int depth = 3;
 	std::vector<Move*> moves = playBoard->getMoves(color);
 	std::vector<int> scores;
 	int max_score = -900000;
@@ -60,6 +60,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 			scoreInd = i;
 			max_score = score;
 		}
+		delete board2;
 	}
 	if(moves.empty())
 		return NULL;
@@ -72,21 +73,29 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 int Player::minimax(int depth, Side side, Board *board)
 {
 	std::vector<Move*> moves = board->getMoves(side);
-
+	int alpha = -9000;
+	int beta = 9000;
 	if(depth == 0 || moves.empty())
-		return board->count(color) - board->count(oppColor);
-
-	int max_score = -900000;
-	int min_score = 900000;
+	    return getScore(board, side);
+	
+	int max_score = -9000;
+	int min_score = 9000;
 	if(side == color)
 	{
 		for(unsigned int i = 0; i < moves.size(); i++)
 		{
 			Board *board2 = board->copy();
 			board2->doMove(moves[i], side);
+			if (alpha < beta) {
 			int score = minimax(depth - 1, oppColor, board2);
-			if(score > max_score)
-				max_score = score;
+			if(alpha > score)
+			alpha = score;
+			if(score > max_score) {
+			    max_score = score;
+			  
+			}
+			delete board2;
+			}
 		}
 		return max_score;
 	}
@@ -96,9 +105,16 @@ int Player::minimax(int depth, Side side, Board *board)
 		{
 			Board *board2 = board->copy();
 			board2->doMove(moves[i], side);
+			if (alpha < beta) {
+			      
 			int score = minimax(depth - 1, color, board2);
-			if(score < min_score)
-				min_score = score;
+			if(score < beta)
+			beta = score;
+			if(score < min_score) {
+			    min_score = score;
+			}
+			delete board2;
+			}
 		}
 		return min_score;
 	}
@@ -115,56 +131,19 @@ int Player::minimax(int depth, Side side, Board *board)
  *@return score the heuristic score of the move
  */
  
-int Player::getScore(Board *board,Move *move, Side side)
+int Player::getScore(Board *board, Side side)
 {
-	int score = board->countBlack() - board->countWhite();
-
-	if(side == WHITE)
-		score = board->countWhite() - board->countBlack();
-	
-	if(corner(move))
-		score *= 5;
-	if(cornerAccess(move))
-		score *= -5;
-
+    int score = 0;
+    if (side == BLACK) {
+        score += 10 * (board->countBlack() - board->countWhite());
+	score +=  4 * (board->getMoves(BLACK).size() - board->getMoves(WHITE).size());
+	score += 20 * (board->corners(BLACK) - board->corners(WHITE));
+    }
+    else {
+        score = 10 * (board->countWhite() - board->countBlack());
+	score += 4 * (board->getMoves(WHITE).size() - board->getMoves(BLACK).size());
+	score += 20 * (board->corners(WHITE) - board->corners(BLACK));
+    }
 	return score;
 }
 
-bool Player::cornerAccess(Move *move)
-{
-	if(move->getX() == 0)
-	{
-		if(move->getY() == 1 || move->getY() == 6)
-			return true;
-	}
-	else if(move->getX() == 1)
-	{
-		if(move->getY() == 0 || move->getY() == 1 || move->getY() == 6 || move->getY() == 7)
-			return true;
-	}
-	else if(move->getX() == 6)
-	{
-		if(move->getY() == 0 || move->getY() == 1 || move->getY() == 6 || move->getY() == 7)
-			return true;
-	}
-	else if(move->getX() == 7)
-	{
-		if(move->getY() == 1 || move->getY() == 6)
-			return true;
-	}
-	return false;
-}
-
-bool Player::corner(Move *move)
-{
-	if(move->getX() == 0 && move->getY() == 0)
-		return true;
-	else if(move->getX() == 0 && move->getY() == 7)
-		return true;
-	else if(move->getX() == 7 && move->getY() == 0)
-		return true;
-	else if(move->getX() == 7 && move->getY() == 7)
-		return true;
-
-	return false;
-}
