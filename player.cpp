@@ -40,11 +40,12 @@ void Player::setBoard(char data[])
 {
 	playBoard->setBoard(data);
 }
+
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
     
     playBoard->doMove(opponentsMove,oppColor);
 
-        int depth = 3;
+    int depth = 3;
 	std::vector<Move*> moves = playBoard->getMoves(color);
 	std::vector<int> scores;
 	int max_score = -900000;
@@ -73,29 +74,30 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 int Player::minimax(int depth, Side side, Board *board)
 {
 	std::vector<Move*> moves = board->getMoves(side);
-	int alpha = -9000;
-	int beta = 9000;
+	
 	if(depth == 0 || moves.empty())
 	    return getScore(board, side);
 	
-	int max_score = -9000;
-	int min_score = 9000;
+	int max_score = -90000;
+	int min_score = 90000;
+	int alpha = -90000;
+	int beta = 90000;
 	if(side == color)
 	{
 		for(unsigned int i = 0; i < moves.size(); i++)
 		{
 			Board *board2 = board->copy();
 			board2->doMove(moves[i], side);
-			if (alpha < beta) {
 			int score = minimax(depth - 1, oppColor, board2);
 			if(alpha > score)
-			alpha = score;
-			if(score > max_score) {
+				alpha = score;
+			if(score > max_score) 
 			    max_score = score;
-			  
-			}
+			if(alpha > beta)
+				break;
+
 			delete board2;
-			}
+			
 		}
 		return max_score;
 	}
@@ -105,16 +107,21 @@ int Player::minimax(int depth, Side side, Board *board)
 		{
 			Board *board2 = board->copy();
 			board2->doMove(moves[i], side);
-			if (alpha < beta) {
 			      
 			int score = minimax(depth - 1, color, board2);
-			if(score < beta)
-			beta = score;
-			if(score < min_score) {
+
+			if(beta < score)
+				beta = score;
+			if(score < min_score) 
+			{
 			    min_score = score;
 			}
+			if(alpha > beta)
+				break;
+
+
 			delete board2;
-			}
+
 		}
 		return min_score;
 	}
@@ -134,15 +141,19 @@ int Player::minimax(int depth, Side side, Board *board)
 int Player::getScore(Board *board, Side side)
 {
     int score = 0;
-    if (side == BLACK) {
-        score += 10 * (board->countBlack() - board->countWhite());
-	score +=  4 * (board->getMoves(BLACK).size() - board->getMoves(WHITE).size());
-	score += 20 * (board->corners(BLACK) - board->corners(WHITE));
+    if (side == BLACK) 
+    {
+        score += 10 * (board->countBlack() - board->countWhite()); // number of pieces
+		score +=  4 * (board->getMoves(BLACK).size() - board->getMoves(WHITE).size()); // number of moves
+		score += 20 * (board->corners(BLACK) - board->corners(WHITE)); // number of corners
+		score += 12 * (board->edges(BLACK) - board->edges(WHITE));
     }
-    else {
+    else 
+    {
         score = 10 * (board->countWhite() - board->countBlack());
-	score += 4 * (board->getMoves(WHITE).size() - board->getMoves(BLACK).size());
-	score += 20 * (board->corners(WHITE) - board->corners(BLACK));
+		score += 4 * (board->getMoves(WHITE).size() - board->getMoves(BLACK).size());
+		score += 20 * (board->corners(WHITE) - board->corners(BLACK));
+		score +=12 * (board->edges(BLACK) - board->edges(WHITE));
     }
 	return score;
 }

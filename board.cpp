@@ -177,6 +177,23 @@ int Board::corners(Side side) {
   return corns;
 }
 
+int Board::edges(Side side)
+{
+    int edges = 0;
+    for(int i = 0; i < 8; i++)
+    {
+        if(get(side,0,i))
+            edges++;
+        if(get(side,i,0))
+            edges++;
+        if(get(side,7,i))
+            edges++;
+        if(get(side,i,7))
+            edges++;
+    }
+    return edges;
+}
+
 /*
  * Current count of black stones.
  */

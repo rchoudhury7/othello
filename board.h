@@ -28,6 +28,7 @@ public:
     void doMove(Move *m, Side side);
     int count(Side side);
     int corners(Side side);
+    int edges(Side side);
     int countBlack();
     int countWhite();
     std::vector<Move*> getMoves(Side side);
